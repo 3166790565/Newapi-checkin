@@ -153,6 +153,69 @@
             animation: noticeIn 0.5s ease-out;
         }
 
+        .cors-notice {
+            background: rgba(245, 158, 11, 0.08);
+            border: 1px solid rgba(245, 158, 11, 0.2);
+            color: #fbbf24;
+            padding: 15px 20px;
+            border-radius: 12px;
+            margin-bottom: 20px;
+            font-size: 14px;
+            display: flex;
+            align-items: flex-start;
+            gap: 10px;
+            animation: noticeIn 0.5s ease-out;
+            line-height: 1.6;
+        }
+
+        .cors-notice .cors-icon {
+            flex-shrink: 0;
+            font-size: 18px;
+        }
+
+        .cors-notice a {
+            color: #a78bfa;
+            text-decoration: none;
+            transition: color 0.2s;
+        }
+
+        .cors-notice a:hover {
+            color: #c4b5fd;
+        }
+
+        .cors-proxy-section {
+            margin-top: 12px;
+            padding: 16px;
+            background: rgba(245, 158, 11, 0.06);
+            border: 1px solid rgba(245, 158, 11, 0.15);
+            border-radius: 12px;
+            animation: noticeIn 0.5s ease-out;
+        }
+
+        .cors-proxy-section .cors-proxy-toggle {
+            display: flex;
+            align-items: center;
+            gap: 10px;
+            margin-bottom: 10px;
+            color: rgba(255, 255, 255, 0.75);
+            font-size: 14px;
+            cursor: pointer;
+        }
+
+        .cors-proxy-section .cors-proxy-toggle input[type="checkbox"] {
+            width: 18px;
+            height: 18px;
+            accent-color: #f59e0b;
+            cursor: pointer;
+        }
+
+        .cors-proxy-section .cors-proxy-warning {
+            font-size: 12px;
+            color: rgba(245, 101, 101, 0.8);
+            margin-top: 8px;
+            line-height: 1.5;
+        }
+
         @keyframes noticeIn {
             from { opacity: 0; transform: translateY(-10px); }
             to { opacity: 1; transform: translateY(0); }
@@ -821,7 +884,212 @@
 
             .back-link { display: none; }
         }
-    </style>
+        /* ─── CORS Proxy Picker ─────────────────────────────────── */
+
+        .cors-proxy-picker-btn {
+            width: 100%;
+            padding: 12px 16px;
+            border: 1px solid rgba(255, 255, 255, 0.1);
+            border-radius: 10px;
+            background: rgba(255, 255, 255, 0.06);
+            color: rgba(255, 255, 255, 0.9);
+            font-size: 14px;
+            cursor: pointer;
+            display: flex;
+            align-items: center;
+            gap: 10px;
+            transition: border-color 0.2s, background 0.2s;
+        }
+
+        .cors-proxy-picker-btn:hover {
+            border-color: rgba(255, 255, 255, 0.2);
+            background: rgba(255, 255, 255, 0.1);
+        }
+
+        .cors-proxy-picker-btn .cors-proxy-picker-arrow {
+            margin-left: auto;
+            font-size: 12px;
+            color: rgba(255, 255, 255, 0.35);
+            transition: transform 0.2s;
+        }
+
+        .cors-proxy-picker-btn.open .cors-proxy-picker-arrow {
+            transform: rotate(90deg);
+        }
+
+        .cors-proxy-friendly-name {
+            font-size: 12px;
+            color: #a78bfa;
+            margin-top: 4px;
+        }
+
+        /* Modal Overlay */
+        .cors-modal-overlay {
+            position: fixed;
+            inset: 0;
+            z-index: 9999;
+            background: rgba(0, 0, 0, 0.6);
+            backdrop-filter: blur(4px);
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            animation: fadeIn 0.15s ease-out;
+        }
+
+        .cors-modal-overlay.hidden {
+            display: none;
+        }
+
+        .cors-modal {
+            background: #1a1a2e;
+            border: 1px solid rgba(255, 255, 255, 0.12);
+            border-radius: 18px;
+            width: min(480px, 92vw);
+            max-height: 75vh;
+            display: flex;
+            flex-direction: column;
+            box-shadow: 0 20px 60px rgba(0, 0, 0, 0.5);
+            animation: scaleIn 0.2s ease-out;
+            overflow: hidden;
+        }
+
+        .cors-modal-header {
+            display: flex;
+            align-items: center;
+            justify-content: space-between;
+            padding: 20px 24px 0;
+        }
+
+        .cors-modal-header h3 {
+            font-size: 16px;
+            color: rgba(255, 255, 255, 0.9);
+            margin: 0;
+        }
+
+        .cors-modal-close {
+            background: none;
+            border: none;
+            font-size: 20px;
+            color: rgba(255, 255, 255, 0.4);
+            cursor: pointer;
+            padding: 4px 8px;
+            border-radius: 6px;
+            line-height: 1;
+        }
+
+        .cors-modal-close:hover {
+            color: rgba(255, 255, 255, 0.85);
+            background: rgba(255, 255, 255, 0.06);
+        }
+
+        .cors-modal-search {
+            margin: 14px 20px 0;
+        }
+
+        .cors-modal-search input {
+            width: 100%;
+            padding: 10px 14px;
+            border: 1px solid rgba(255, 255, 255, 0.1);
+            border-radius: 10px;
+            background: rgba(255, 255, 255, 0.05);
+            color: rgba(255, 255, 255, 0.85);
+            font-size: 13px;
+            outline: none;
+        }
+
+        .cors-modal-search input:focus {
+            border-color: rgba(167, 139, 250, 0.5);
+        }
+
+        .cors-modal-search input::placeholder {
+            color: rgba(255, 255, 255, 0.3);
+        }
+
+        .cors-modal-body {
+            padding: 10px 14px 14px;
+            overflow-y: auto;
+            flex: 1;
+        }
+
+        .cors-proxy-opt {
+            display: flex;
+            flex-direction: column;
+            gap: 4px;
+            padding: 12px 14px;
+            border-radius: 12px;
+            cursor: pointer;
+            transition: background 0.15s;
+            border: 1px solid transparent;
+        }
+
+        .cors-proxy-opt:hover {
+            background: rgba(167, 139, 250, 0.08);
+            border-color: rgba(167, 139, 250, 0.18);
+        }
+
+        .cors-proxy-opt.active {
+            background: rgba(167, 139, 250, 0.14);
+            border-color: rgba(167, 139, 250, 0.35);
+        }
+
+        .cors-proxy-opt-name {
+            font-size: 14px;
+            font-weight: 500;
+            color: rgba(255, 255, 255, 0.85);
+        }
+
+        .cors-proxy-opt-host {
+            font-size: 12px;
+            color: rgba(255, 255, 255, 0.35);
+            font-family: 'SF Mono', 'Fira Code', 'Cascadia Code', monospace;
+        }
+
+        .cors-proxy-opt-tag {
+            display: inline-block;
+            margin-top: 4px;
+            padding: 2px 7px;
+            border-radius: 4px;
+            font-size: 11px;
+            font-weight: 500;
+        }
+
+        .cors-proxy-opt-tag.recommended {
+            background: rgba(52, 211, 153, 0.12);
+            color: #34d399;
+        }
+
+        .cors-proxy-opt-tag.note {
+            background: rgba(245, 158, 11, 0.12);
+            color: #fbbf24;
+        }
+
+        .cors-proxy-opt-tag.warn {
+            background: rgba(245, 101, 101, 0.12);
+            color: #f87171;
+        }
+
+        .cors-proxy-custom {
+            border-top: 1px solid rgba(255, 255, 255, 0.08);
+            margin-top: 4px;
+            padding-top: 10px;
+        }
+
+        .cors-proxy-custom-name {
+            font-size: 14px;
+            color: rgba(255, 255, 255, 0.6);
+        }
+
+        @keyframes fadeIn {
+            from { opacity: 0; }
+            to { opacity: 1; }
+        }
+
+        @keyframes scaleIn {
+            from { transform: scale(0.95); opacity: 0; }
+            to { transform: scale(1); opacity: 1; }
+        }
+
+        </style>
 </head>
 <body>
     <div class="container">
@@ -832,6 +1100,13 @@
         </div>
 
         <div class="content">
+            <div id="cors-notice" class="cors-notice" style="display: none;">
+                <span class="cors-icon">⚠️</span>
+                <div>
+                    <strong id="cors-notice-title">当前页面以网络协议运行，云端同步可能受 CORS 跨域限制。</strong><br>
+                    <span id="cors-notice-tips" style="color: rgba(255,255,255,0.6);">如遇连接失败，推荐优先在云端同步中启用 <strong>CORS 代理</strong>。</span>
+                </div>
+            </div>
             <div id="sites-container"></div>
 
             <div class="btn-group">
@@ -895,6 +1170,26 @@
                         <label>文件名</label>
                         <input type="text" id="cloud-filename" value="newapi-config.json" placeholder="newapi-config.json">
                         <small>云盘上的配置文件名（JSON 格式）</small>
+                    </div>
+                </div>
+
+                <div class="cors-proxy-section" id="cors-proxy-section">
+                    <label class="cors-proxy-toggle">
+                        <input type="checkbox" id="cors-proxy-enabled" onchange="toggleCorsProxy()">
+                        <span>方案三：CORS 代理（临时最快，不推荐存敏感数据）</span>
+                    </label>
+                    <div class="form-group" id="cors-proxy-field" style="display: none;">
+                        <label style="color: rgba(255,255,255,0.65);">CORS 代理地址</label>
+                        <button type="button" class="cors-proxy-picker-btn" id="cors-proxy-picker-btn" onclick="openCorsProxyPicker()">
+                            <span id="cors-proxy-current-label">选择内置代理或填写自定义地址</span>
+                            <span class="cors-proxy-picker-arrow">▸</span>
+                        </button>
+                        <input type="text" id="cors-proxy-url" placeholder="或直接在此粘贴代理地址" style="display: none; margin-bottom: 10px;" oninput="updateCorsProxyPreview()">
+                        <small>代理地址拼在 WebDAV 地址前面，实际请求变为：<code id="cors-proxy-preview" style="color:#a78bfa;">代理地址 + WebDAV地址</code></small>
+                        <div id="cors-proxy-friendly-name" class="cors-proxy-friendly-name"></div>
+                    </div>
+                    <div class="cors-proxy-warning" id="cors-proxy-warning" style="display: none;">
+                        ⚠️ 安全提示：CORS 代理会让你的账号密码经第三方服务器转发，请勿用于存放敏感隐私数据的账号。推荐优先使用 <strong>方案一（本地打开）</strong>。
                     </div>
                 </div>
 
@@ -969,7 +1264,16 @@
                             <li><strong>方案一（推荐）：</strong>本地打开 HTML 文件（<code>file://</code> 协议），CORS 限制自动绕过</li>
                             <li><strong>方案二：</strong>群晖/NextCloud 在服务端添加 CORS 头 <code>Access-Control-Allow-Origin</code></li>
                             <li><strong>方案三：</strong>坚果云不支持自定义 CORS，请用方案一</li>
-                            <li><strong>方案四：</strong>自建 CORS 代理（如 <code>cors-anywhere</code>），拼在 WebDAV 地址前面</li>
+                            <li><strong>方案三（最快）：</strong>使用内置 CORS 代理，下列代理任选其一，无需修改服务端配置
+                        <ul style="margin-left: 16px; margin-top: 4px; font-size: 12px;">
+                            <li>👉 <strong>AllOrigins</strong>（api.allorigins.win）— 免费，选这个先试</li>
+                            <li>👉 <strong>CORSProxy</strong>（corsproxy.io）— 免费，HTTPS</li>
+                            <li>👉 <strong>CodeTabs</strong>（api.codetabs.com）— 免费，首次可能需等几秒</li>
+                            <li>👉 <strong>ThingProxy</strong>（thingproxy.freeboard.io）— 免费</li>
+                            <li>⚠️ <strong>CORS Anywhere</strong>（herokuapp.com）— 需先打开其首页点 <em>Request temporary access</em> 激活</li>
+                        </ul>
+                    </li>
+                    <li>⚠️ CORS 代理意味着账号密码会经第三方转发，请勿用于敏感数据账号</li>
                         </ul>
                     </div>
                 </div>
@@ -1522,6 +1826,8 @@
             const password = document.getElementById('cloud-password').value.trim();
             const token = document.getElementById('cloud-token').value.trim();
             const filename = document.getElementById('cloud-filename').value.trim() || 'newapi-config.json';
+            const corsProxyEnabled = document.getElementById('cors-proxy-enabled').checked;
+            const corsProxyUrl = document.getElementById('cors-proxy-url').value.trim();
 
             if (!url) {
                 showCloudStatus('error', '请先填写 WebDAV 地址再保存配置');
@@ -1530,6 +1836,7 @@
 
             const config = {
                 url, authType, username, password, token, filename,
+                corsProxyEnabled, corsProxyUrl,
                 preset: document.querySelector('.cloud-preset-btn.active')?.id?.replace('preset-', '') || ''
             };
 
@@ -1575,6 +1882,8 @@
                 password: document.getElementById('cloud-password').value.trim(),
                 token: document.getElementById('cloud-token').value.trim(),
                 filename: document.getElementById('cloud-filename').value.trim() || 'newapi-config.json',
+                corsProxyEnabled: document.getElementById('cors-proxy-enabled').checked,
+                corsProxyUrl: document.getElementById('cors-proxy-url').value.trim(),
                 preset: document.querySelector('.cloud-preset-btn.active')?.id?.replace('preset-', '') || ''
             };
             try {
@@ -1584,16 +1893,190 @@
         }
 
         function initCloudAutoSave() {
-            ['cloud-url', 'cloud-username', 'cloud-password', 'cloud-token', 'cloud-filename'].forEach(id => {
+            ['cloud-url', 'cloud-username', 'cloud-password', 'cloud-token', 'cloud-filename', 'cors-proxy-url'].forEach(id => {
                 const el = document.getElementById(id);
                 if (el) el.addEventListener('input', autoSaveCloudConfig);
             });
             document.getElementById('cloud-auth-type').addEventListener('change', autoSaveCloudConfig);
+            document.getElementById('cors-proxy-enabled').addEventListener('change', autoSaveCloudConfig);
         }
 
         initCloudAutoSave();
 
-        function loadCloudConfigFromLocal() {
+        (function detectProtocol() {
+            const protocol = window.location.protocol;
+            const noticeEl = document.getElementById('cors-notice');
+            const titleEl = document.getElementById('cors-notice-title');
+            const tipsEl = document.getElementById('cors-notice-tips');
+            const isChrome = /Chrome\//.test(navigator.userAgent) && !/Edg\//.test(navigator.userAgent);
+
+            if (protocol === 'file:') {
+                if (isChrome) {
+                    noticeEl.style.display = 'flex';
+                    titleEl.textContent = 'Chrome 本地打开仍受跨域限制，无法直接请求 HTTPS 地址。';
+                    tipsEl.innerHTML = '推荐在云端同步中启用 <strong>CORS 代理</strong>，或使用 <strong>Firefox</strong> 浏览器打开本文件（Firefox 允许 file:// 跨域请求）。';
+                } else {
+                    noticeEl.style.display = 'none';
+                }
+            } else {
+                noticeEl.style.display = 'flex';
+                titleEl.textContent = '当前页面以网络协议运行，云端同步受 CORS 跨域限制。';
+                tipsEl.innerHTML = '推荐在云端同步中启用 <strong>CORS 代理</strong>，或 <a href="javascript:void(0)" onclick="downloadThisPage()" style="color:#a78bfa;">下载到本地</a>后用 <strong>Firefox</strong> 打开。群晖/NextCloud 可在服务端配置 CORS 头。';
+            }
+        })();
+
+        // ─── CORS Proxy Picker ─────────────────────────────────────
+
+        const CORS_PROXIES = [
+            {
+                url: 'https://api.allorigins.win/raw?url=',
+                name: 'AllOrigins',
+                host: 'api.allorigins.win',
+                note: '免费，无需申请，推荐首选',
+                tag: 'recommended',
+            },
+            {
+                url: 'https://corsproxy.io/?',
+                name: 'CORSProxy',
+                host: 'corsproxy.io',
+                note: '免费，HTTPS',
+                tag: 'recommended',
+            },
+            {
+                url: 'https://api.codetabs.com/v1/proxy?quest=',
+                name: 'CodeTabs',
+                host: 'api.codetabs.com',
+                note: '免费，首次请求可能需等待 2–3 秒',
+                tag: 'note',
+            },
+            {
+                url: 'https://thingproxy.freeboard.io/fetch/',
+                name: 'ThingProxy',
+                host: 'thingproxy.freeboard.io',
+                note: '免费，适合 JSON 接口',
+                tag: 'note',
+            },
+            {
+                url: 'https://cors-anywhere.herokuapp.com/',
+                name: 'CORS Anywhere',
+                host: 'cors-anywhere.herokuapp.com',
+                note: '需先打开其首页点击 Request temporary access 激活',
+                tag: 'warn',
+            },
+            {
+                url: 'https://api.codetabs.com/v1/proxy?quest=',
+                name: 'AllOrigins Fallback',
+                host: 'api.allorigins.win/raw',
+                note: '备用镜像',
+                tag: 'note',
+            },
+        ];
+
+        function renderCorsProxyList(filter) {
+            const q = (filter || '').toLowerCase();
+            const body = document.getElementById('cors-modal-body');
+            const currentUrl = document.getElementById('cors-proxy-url').value.trim();
+
+            body.innerHTML = CORS_PROXIES.filter(p => {
+                if (!q) return true;
+                return p.name.toLowerCase().includes(q) || p.host.toLowerCase().includes(q);
+            }).map(p => {
+                const isActive = p.url === currentUrl;
+                const tagMap = {
+                    recommended: { text: '推荐', cls: 'recommended' },
+                    note: { text: '提示', cls: 'note' },
+                    warn: { text: '注意', cls: 'warn' },
+                };
+                const tag = tagMap[p.tag] || null;
+                return `
+                    <div class="cors-proxy-opt${isActive ? ' active' : ''}" data-url="${p.url}" onclick="selectCorsProxy('${p.url}', '${p.name}')">
+                        <div class="cors-proxy-opt-name">${p.name}</div>
+                        <div class="cors-proxy-opt-host">${p.host}</div>
+                        <span class="cors-proxy-opt-tag ${tag.cls}">${tag.text}</span>
+                        <span style="font-size:12px;color:rgba(255,255,255,0.35);margin-left:6px;">${p.note}</span>
+                        ${isActive ? '<span class="cors-proxy-opt-tag recommended" style="margin-left:8px;">✓ 当前</span>' : ''}
+                    </div>`;
+            }).join('');
+
+            // 自定义地址选项
+            body.innerHTML += `
+                <div class="cors-proxy-opt cors-proxy-custom" onclick="selectCustomProxy()">
+                    <div class="cors-proxy-opt-name">✏️ 手动输入自定义地址</div>
+                    <div class="cors-proxy-opt-custom-tip" style="font-size:12px;color:rgba(255,255,255,0.35);margin-top:4px;">粘贴你自己的 CORS 代理或自建代理地址</div>
+                </div>`;
+        }
+
+        function openCorsProxyPicker() {
+            const overlay = document.getElementById('cors-modal-overlay');
+            overlay.classList.remove('hidden');
+            renderCorsProxyList('');
+            // focus 搜索框
+            requestAnimationFrame(() => {
+                document.getElementById('cors-modal-search').value = '';
+                document.getElementById('cors-modal-search').focus();
+            });
+            // 标记按钮为打开态
+            document.getElementById('cors-proxy-picker-btn').classList.add('open');
+        }
+
+        function closeCorsProxyPicker() {
+            document.getElementById('cors-modal-overlay').classList.add('hidden');
+            document.getElementById('cors-proxy-picker-btn').classList.remove('open');
+        }
+
+        function closeCorsProxyPickerOutside(e) {
+            if (e.target === document.getElementById('cors-modal-overlay')) {
+                closeCorsProxyPicker();
+            }
+        }
+
+        function filterCorsProxies(val) {
+            renderCorsProxyList(val);
+        }
+
+        function selectCorsProxy(url, name) {
+            document.getElementById('cors-proxy-url').value = url;
+            document.getElementById('cors-proxy-url').style.display = 'block';
+            document.getElementById('cors-proxy-friendly-name').textContent = `✅ 已选择：${name}（${url}）`;
+            closeCorsProxyPicker();
+            updateCorsProxyPreview();
+            autoSaveCloudConfig();
+        }
+
+        function selectCustomProxy() {
+            closeCorsProxyPicker();
+            const input = document.getElementById('cors-proxy-url');
+            input.style.display = 'block';
+            input.value = '';
+            input.focus();
+            document.getElementById('cors-proxy-friendly-name').textContent = '';
+            updateCorsProxyPreview();
+            autoSaveCloudConfig();
+        }
+
+        // ESC 关闭
+        document.addEventListener('keydown', (e) => {
+            if (e.key === 'Escape') closeCorsProxyPicker();
+        });
+
+        function toggleCorsProxy() {
+            const enabled = document.getElementById('cors-proxy-enabled').checked;
+            document.getElementById('cors-proxy-warning').style.display = enabled ? 'block' : 'none';
+            if (enabled) {
+                openCorsProxyPicker();
+            } else {
+                document.getElementById('cors-proxy-url').style.display = 'none';
+                document.getElementById('cors-proxy-url').value = '';
+                document.getElementById('cors-proxy-friendly-name').textContent = '';
+                const btn = document.getElementById('cors-proxy-picker-btn');
+                btn.innerHTML = '<span>选择内置代理或填写自定义地址</span><span class="cors-proxy-picker-arrow">▸</span>';
+                btn.classList.remove('selected');
+                updateCorsProxyPreview();
+                autoSaveCloudConfig();
+            }
+        }
+
+        function downloadThisPage() {
             const saved = localStorage.getItem(CLOUD_STORAGE_KEY);
             if (!saved) return;
 
@@ -1605,10 +2088,25 @@
                 document.getElementById('cloud-password').value = config.password || '';
                 document.getElementById('cloud-token').value = config.token || '';
                 document.getElementById('cloud-filename').value = config.filename || 'newapi-config.json';
+                document.getElementById('cors-proxy-enabled').checked = config.corsProxyEnabled || false;
+                document.getElementById('cors-proxy-url').value = config.corsProxyUrl || '';
 
                 if (config.authType === 'token') {
                     document.getElementById('cloud-basic-auth-fields').style.display = 'none';
                     document.getElementById('cloud-token-field').style.display = 'block';
+                }
+
+                if (config.corsProxyEnabled) {
+                    document.getElementById('cors-proxy-field').style.display = 'block';
+                    document.getElementById('cors-proxy-warning').style.display = 'block';
+                    document.getElementById('cors-proxy-url').style.display = 'block';
+                    if (config.corsProxyUrl) {
+                        const matched = CORS_PROXIES.find(p => p.url === config.corsProxyUrl);
+                        const label = matched ? matched.name : '自定义代理';
+                        document.getElementById('cors-proxy-friendly-name').textContent = `✅ 已选择：${label}`;
+                        document.getElementById('cors-proxy-picker-btn').innerHTML = `<span>${matched ? matched.name : '自定义代理'}</span><span class="cors-proxy-picker-arrow">▸</span>`;
+                        document.getElementById('cors-proxy-picker-btn').classList.add('selected');
+                    }
                 }
 
                 if (config.preset) {
@@ -1618,6 +2116,7 @@
                 }
 
                 updateSavedConfigDisplay(config);
+                updateCorsProxyPreview();
             } catch (e) {}
         }
 
@@ -1649,6 +2148,13 @@
                 }
             } else {
                 baseUrl += filename;
+            }
+
+            const corsProxyEnabled = document.getElementById('cors-proxy-enabled').checked;
+            const corsProxyUrl = document.getElementById('cors-proxy-url').value.trim();
+            if (corsProxyEnabled && corsProxyUrl) {
+                const proxyBase = corsProxyUrl.endsWith('/') ? corsProxyUrl : corsProxyUrl + '/';
+                baseUrl = proxyBase + baseUrl;
             }
 
             return baseUrl;
@@ -1798,7 +2304,17 @@
                 }
             } catch (e) {
                 if (e.name === 'TypeError' && e.message.includes('Failed to fetch')) {
-                    showCloudStatus('error', '❌ 网络请求失败：可能是 CORS 跨域限制，或地址不可达\n\n解决方案：\n1. 群晖/NextCloud：在服务端配置 CORS 允许头\n2. 使用本地 HTML 文件（file:// 协议）打开本页面\n3. 坚果云：确保使用 HTTPS 地址');
+                    const isChrome = /Chrome\//.test(navigator.userAgent) && !/Edg\//.test(navigator.userAgent);
+                    const protocol = window.location.protocol;
+                    let tips = '';
+                    if (protocol === 'file:' && isChrome) {
+                        tips = '\n\n💡 Chrome 不允许 file:// 向 HTTPS 发送请求，请：\n1. 启用「CORS 代理」\n2. 用 Firefox 打开本文件\n3. 检查地址和网络是否正常';
+                    } else if (protocol === 'file:') {
+                        tips = '\n\n💡 请检查：\n1. WebDAV 地址是否正确可达\n2. 网络连接是否正常\n3. HTTPS 证书是否有效';
+                    } else {
+                        tips = '\n\n💡 解决方案（按推荐顺序）：\n1. 启用「CORS 代理」（最快捷）\n2. 下载本页面后用 Firefox 打开\n3. 群晖/NextCloud 在服务端配置 CORS 头\n4. 坚果云不支持自定义 CORS，请用方案 1 或 2';
+                    }
+                    showCloudStatus('error', '❌ 连接失败：可能是 CORS 跨域限制或地址不可达' + tips);
                 } else {
                     showCloudStatus('error', `❌ 保存失败：${e.message}`);
                 }
@@ -1857,7 +2373,14 @@
                 if (e instanceof SyntaxError) {
                     showCloudStatus('error', '❌ 配置文件不是有效的 JSON 格式');
                 } else if (e.name === 'TypeError' && e.message.includes('Failed to fetch')) {
-                    showCloudStatus('error', '❌ 网络请求失败：可能是 CORS 跨域限制\n\n解决方案：\n1. 使用 file:// 协议打开本页面\n2. 在服务端配置 CORS 允许头');
+                    const protocol = window.location.protocol;
+                    let tips = '';
+                    if (protocol !== 'file:') {
+                        tips = '\n\n💡 解决方案：\n1. 下载本页面到本地打开（绕过 CORS）\n2. 启用「CORS 代理」\n3. 在服务端配置 CORS 允许头';
+                    } else {
+                        tips = '\n\n💡 请检查 WebDAV 地址和网络连接';
+                    }
+                    showCloudStatus('error', '❌ 网络请求失败：可能是 CORS 跨域限制或地址不可达' + tips);
                 } else {
                     showCloudStatus('error', `❌ 加载失败：${e.message}`);
                 }
@@ -1875,6 +2398,13 @@
             if (!headers) return;
 
             if (!url.endsWith('/')) url += '/';
+
+            const corsProxyEnabled = document.getElementById('cors-proxy-enabled').checked;
+            const corsProxyUrl = document.getElementById('cors-proxy-url').value.trim();
+            if (corsProxyEnabled && corsProxyUrl) {
+                const proxyBase = corsProxyUrl.endsWith('/') ? corsProxyUrl : corsProxyUrl + '/';
+                url = proxyBase + url;
+            }
 
             showCloudStatus('info', '正在测试连接...');
 
@@ -1901,7 +2431,14 @@
                 }
             } catch (e) {
                 if (e.name === 'TypeError' && e.message.includes('Failed to fetch')) {
-                    showCloudStatus('error', '❌ 连接失败：可能是 CORS 跨域限制或地址不可达\n\n提示：可尝试用 file:// 协议打开本页面，或在服务端配置 CORS');
+                    const protocol = window.location.protocol;
+                    let tips = '';
+                    if (protocol !== 'file:') {
+                        tips = '\n\n💡 解决方案：\n1. 下载本页面到本地打开（绕过 CORS）\n2. 启用「CORS 代理」\n3. 在服务端配置 CORS 允许头';
+                    } else {
+                        tips = '\n\n💡 请检查地址和网络连接';
+                    }
+                    showCloudStatus('error', '❌ 连接失败：可能是 CORS 跨域限制或地址不可达' + tips);
                 } else {
                     showCloudStatus('error', `❌ 连接测试失败：${e.message}`);
                 }
@@ -1997,5 +2534,21 @@
             });
         });
     </script>
+<!-- CORS 代理选择弹窗 -->
+    <div class="cors-modal-overlay hidden" id="cors-modal-overlay" onclick="closeCorsProxyPickerOutside(event)">
+        <div class="cors-modal" id="cors-modal">
+            <div class="cors-modal-header">
+                <h3>🌐 选择 CORS 代理</h3>
+                <button class="cors-modal-close" onclick="closeCorsProxyPicker()">✕</button>
+            </div>
+            <div class="cors-modal-search">
+                <input type="text" id="cors-modal-search" placeholder="搜索代理…" oninput="filterCorsProxies(this.value)" autocomplete="off">
+            </div>
+            <div class="cors-modal-body" id="cors-modal-body">
+                <!-- 由 JS 渲染 -->
+            </div>
+        </div>
+    </div>
+
 </body>
 </html>
