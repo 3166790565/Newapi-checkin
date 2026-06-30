@@ -26,12 +26,6 @@ try:
 except ImportError:
     send_checkin_notification = None
 
-try:
-    from notifier import send_email_notification, send_serverchan_notification
-except ImportError:
-    send_email_notification = None
-    send_serverchan_notification = None
-
 
 class NewAPICheckin:
     """NewAPI 签到类"""
@@ -262,6 +256,74 @@ class NewAPICheckin:
         except Exception as e:
             result['message'] = f'未知错误: {e}'
 
+        # 如果主签到接口失败，尝试备用接口
+        if not result['success']:
+            print(f'    [回退] 主签到失败 ({result["message"]})，尝试备用接口...')
+            fallback = self._fallback_checkin()
+            if fallback['success']:
+                return fallback
+
+        return result
+
+    def _fallback_checkin(self) -> dict:
+        """
+        备用签到接口（api.rua.chat）
+
+        当主签到接口失败时，尝试通过此接口签到。
+        使用 Chrome 149 User-Agent。
+
+        Returns:
+            签到结果字典
+        """
+        result = {
+            'success': False,
+            'message': '',
+            'checkin_date': None,
+            'quota_awarded': None
+        }
+
+        try:
+            fallback_session = requests.Session()
+            fallback_session.cookies.set('session', self.session_cookie)
+            fallback_session.headers.update({
+                'Accept': 'application/json, text/plain, */*',
+                'Accept-Language': 'zh-CN,zh;q=0.9,en;q=0.8',
+                'User-Agent': 'Mozilla/5.0 (Windows NT 10.0; Win64; x64) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/149.0.0.0 Safari/537.36',
+            })
+
+            resp = fallback_session.post('https://api.rua.chat/api/user/checkin', timeout=30)
+
+            if resp.status_code == 401:
+                result['message'] = '备用接口认证失败: Session 可能已过期'
+                return result
+
+            try:
+                data = resp.json()
+            except json.JSONDecodeError:
+                content_preview = resp.text[:200] if resp.text else '(空响应)'
+                result['message'] = f'备用接口响应格式错误 (HTTP {resp.status_code}): {content_preview}'
+                return result
+
+            if resp.status_code == 200:
+                if data.get('success'):
+                    result['success'] = True
+                    result['message'] = data.get('message', '备用接口签到成功')
+
+                    checkin_data = data.get('data', {})
+                    result['checkin_date'] = checkin_data.get('checkin_date')
+                    result['quota_awarded'] = checkin_data.get('quota_awarded')
+                else:
+                    result['message'] = f'备用接口签到失败: {data.get("message", "未知错误")}'
+            else:
+                result['message'] = f'备用接口 HTTP {resp.status_code}: {data.get("message", "未知错误")}'
+
+        except requests.exceptions.Timeout:
+            result['message'] = '备用接口请求超时'
+        except requests.exceptions.RequestException as e:
+            result['message'] = f'备用接口网络请求失败: {e}'
+        except Exception as e:
+            result['message'] = f'备用接口未知错误: {e}'
+
         return result
 
     def _cf_bypass_checkin(self) -> dict:
@@ -454,30 +516,6 @@ def load_config_from_cloud(config_url: str, config_auth: str = None) -> Optional
                 if dt.get('webhook'):
                     print('[云端] 已从云端加载钉钉通知配置')
 
-            if data.get('email'):
-                em = data['email']
-                if em.get('smtp_host') and not os.environ.get('EMAIL_SMTP_HOST'):
-                    os.environ['EMAIL_SMTP_HOST'] = em['smtp_host']
-                if em.get('smtp_port') and not os.environ.get('EMAIL_SMTP_PORT'):
-                    os.environ['EMAIL_SMTP_PORT'] = str(em['smtp_port'])
-                if em.get('user') and not os.environ.get('EMAIL_USER'):
-                    os.environ['EMAIL_USER'] = em['user']
-                if em.get('pass') and not os.environ.get('EMAIL_PASS'):
-                    os.environ['EMAIL_PASS'] = em['pass']
-                if em.get('to') and not os.environ.get('EMAIL_TO'):
-                    os.environ['EMAIL_TO'] = em['to']
-                if em.get('from_addr') and not os.environ.get('EMAIL_FROM'):
-                    os.environ['EMAIL_FROM'] = em['from_addr']
-                if em.get('smtp_host'):
-                    print('[云端] 已从云端加载邮件通知配置')
-
-            if data.get('serverchan'):
-                sc = data['serverchan']
-                if sc.get('sendkey') and not os.environ.get('SERVERCHAN_SENDKEY'):
-                    os.environ['SERVERCHAN_SENDKEY'] = sc['sendkey']
-                if sc.get('sendkey'):
-                    print('[云端] 已从云端加载 ServerChan 通知配置')
-
             return accounts_str
         else:
             print('[云端] 配置格式错误: 无法解析账号列表')
@@ -497,25 +535,8 @@ def load_config_from_cloud(config_url: str, config_auth: str = None) -> Optional
         return None
 
 
-def load_env_file():
-    """加载脚本同目录下的 .env 文件到环境变量"""
-    env_file = os.path.join(os.path.dirname(os.path.abspath(__file__)), '.env')
-    if os.path.isfile(env_file):
-        with open(env_file, 'r', encoding='utf-8') as f:
-            for line in f:
-                line = line.strip()
-                if not line or line.startswith('#') or '=' not in line:
-                    continue
-                key, _, value = line.partition('=')
-                key = key.strip()
-                value = value.strip()
-                if key and value:
-                    os.environ.setdefault(key, value)
-
-
 def main():
     """主函数"""
-    load_env_file()
     import pytz
     beijing_tz = pytz.timezone('Asia/Shanghai')
     execution_time = datetime.now(beijing_tz).strftime("%Y-%m-%d %H:%M:%S")
@@ -660,20 +681,6 @@ def main():
         send_checkin_notification(checkin_results, execution_time)
     elif os.environ.get('DINGTALK_WEBHOOK'):
         print('[警告] 已配置 DINGTALK_WEBHOOK 但无法导入通知模块')
-
-    # 发送邮件通知
-    if send_email_notification:
-        print('正在发送邮件通知...')
-        send_email_notification(checkin_results, execution_time)
-    elif os.environ.get('EMAIL_SMTP_HOST'):
-        print('[警告] 已配置邮件参数但无法导入通知模块')
-
-    # 发送 ServerChan 通知
-    if send_serverchan_notification:
-        print('正在发送 ServerChan 通知...')
-        send_serverchan_notification(checkin_results, execution_time)
-    elif os.environ.get('SERVERCHAN_SENDKEY'):
-        print('[警告] 已配置 SERVERCHAN_SENDKEY 但无法导入通知模块')
 
     # 如果全部失败则返回错误码
     if fail_count == len(accounts):
