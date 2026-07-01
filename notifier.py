@@ -169,7 +169,8 @@ def send_email_notification(results: List[Dict[str, Any]], execution_time: Optio
         EMAIL_FROM: 发件人地址 (可选，默认与 EMAIL_USER 相同)
     """
     host = os.environ.get('EMAIL_SMTP_HOST', '')
-    port = int(os.environ.get('EMAIL_SMTP_PORT', '465'))
+    port_str = os.environ.get('EMAIL_SMTP_PORT', '465')
+    port = int(port_str) if port_str else 465
     user = os.environ.get('EMAIL_USER', '')
     password = os.environ.get('EMAIL_PASS', '')
     to_addr = os.environ.get('EMAIL_TO', '')

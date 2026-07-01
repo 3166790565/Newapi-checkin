@@ -662,7 +662,7 @@ def main():
         print('[警告] 已配置 DINGTALK_WEBHOOK 但无法导入通知模块')
 
     # 发送邮件通知
-    if send_email_notification:
+    if send_email_notification and os.environ.get('EMAIL_SMTP_HOST'):
         print('正在发送邮件通知...')
         send_email_notification(checkin_results, execution_time)
     elif os.environ.get('EMAIL_SMTP_HOST'):
