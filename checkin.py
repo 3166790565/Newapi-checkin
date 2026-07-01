@@ -359,7 +359,14 @@ class NewAPICheckin:
                     result['checkin_date'] = checkin_data.get('checkin_date')
                     result['quota_awarded'] = checkin_data.get('quota_awarded')
                 else:
-                    result['message'] = data.get('message', '签到失败')
+                    message = data.get('message', '签到失败')
+                    already_keywords = ['已签到', '已经签到', 'already', '重复签到']
+                    already_checked_in = any(k in message for k in already_keywords)
+                    if already_checked_in:
+                        result['success'] = True
+                        result['message'] = message
+                    else:
+                        result['message'] = message
             else:
                 result['message'] = f'HTTP {resp.status_code}: {data.get("message", "未知错误")}'
 

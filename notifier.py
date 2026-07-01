@@ -45,8 +45,8 @@ def build_report_text(results: List[Dict[str, Any]], execution_time: str) -> str
         lines.append(f'✓ 成功 ({len(success_list)}个):')
         for r in success_list:
             name = r.get('name', '未知账号')
-            quota = r.get('quota_awarded', 0)
-            quota_str = f'+{format_quota(quota)}' if quota else '-'
+            quota = r.get('quota_awarded') or 0
+            quota_str = f'+{format_quota(quota)}' if quota > 0 else '-'
             checkin_count = r.get('checkin_count')
             detail = f'已签 {checkin_count} 天' if checkin_count else r.get('message', '成功')
             lines.append(f'  {name} | {quota_str} | {detail}')
@@ -96,8 +96,8 @@ def build_report_html(results: List[Dict[str, Any]], execution_time: str) -> str
         rows += f'✅ 成功 ({len(success_list)}个)</td></tr>'
         for r in success_list:
             name = r.get('name', '未知账号')
-            quota = r.get('quota_awarded', 0)
-            quota_str = f'+{format_quota(quota)}' if quota else '-'
+            quota = r.get('quota_awarded') or 0
+            quota_str = f'+{format_quota(quota)}' if quota > 0 else '-'
             checkin_count = r.get('checkin_count')
             detail = f'已签 {checkin_count} 天' if checkin_count else r.get('message', '成功')
             rows += f'<tr><td style="padding:4px 10px;">{name}</td>'
@@ -267,8 +267,8 @@ def send_serverchan_notification(results: List[Dict[str, Any]], execution_time: 
         lines.append('|------|------|------|')
         for r in success_list:
             name = r.get('name', '未知账号')
-            quota = r.get('quota_awarded', 0)
-            quota_str = f'+{format_quota(quota)}' if quota else '-'
+            quota = r.get('quota_awarded') or 0
+            quota_str = f'+{format_quota(quota)}' if quota > 0 else '-'
             checkin_count = r.get('checkin_count')
             detail = f'已签 {checkin_count} 天' if checkin_count else r.get('message', '成功')
             lines.append(f'| {name} | {quota_str} | {detail} |')
