@@ -1,5 +1,4 @@
-requests>=2.28.0
-
-pytz>=2023.3
-
-playwright>=1.40.0
+# NewAPI 自动签到运行依赖
+requests>=2.28.0      # HTTP 请求（签到/通知/云端配置）
+pytz>=2023.3          # 北京时间时区
+playwright>=1.40.0    # Cloudflare 绕过（仅 CF 拦截站点需要）

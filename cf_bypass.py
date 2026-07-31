@@ -17,6 +17,7 @@ import os
 import re
 import time
 from typing import Optional, Tuple
+from urllib.parse import urlparse
 
 
 def detect_cloudflare_block(status_code: int, response_text: str) -> Tuple[bool, str]:
@@ -45,6 +46,28 @@ def detect_cloudflare_block(status_code: int, response_text: str) -> Tuple[bool,
             return True, 'Cloudflare Challenge (non-JSON HTML response)'
 
     return False, ''
+
+
+def mask_url(url: str) -> str:
+    """
+    脱敏 URL，隐藏域名细节
+    例如: https://api.example.com -> https://api.***.com
+           https://example.com     -> https://***.com
+    """
+    try:
+        parsed = urlparse(url)
+        domain_parts = parsed.netloc.split('.')
+        if len(domain_parts) >= 3:
+            # 保留首尾分段，中间用 *** 代替
+            masked_domain = f"{domain_parts[0]}.***." + '.'.join(domain_parts[-1:])
+        elif len(domain_parts) == 2:
+            # 二级域名整体隐藏，避免输出 example.***.com 这种误导域名
+            masked_domain = '***.' + '.'.join(domain_parts[-1:])
+        else:
+            masked_domain = '***'
+        return f"{parsed.scheme}://{masked_domain}"
+    except Exception:
+        return 'https://***'
 
 
 class CloudflareBypasser:
@@ -128,7 +151,7 @@ class CloudflareBypasser:
             print('[CF 绕过] Playwright 未安装，无法绕过 Cloudflare')
             return None
 
-        print(f'[CF 绕过] 使用 Playwright 访问 {self._mask_url(self.base_url)}...')
+        print(f'[CF 绕过] 使用 Playwright 访问 {mask_url(self.base_url)}...')
         from playwright.sync_api import sync_playwright
 
         with sync_playwright() as p:
@@ -228,17 +251,3 @@ class CloudflareBypasser:
                 except Exception:
                     pass
                 return None
-
-    @staticmethod
-    def _mask_url(url: str) -> str:
-        try:
-            from urllib.parse import urlparse
-            parsed = urlparse(url)
-            domain_parts = parsed.netloc.split('.')
-            if len(domain_parts) >= 2:
-                masked_domain = f"{domain_parts[0]}.***." + '.'.join(domain_parts[-1:])
-            else:
-                masked_domain = '***'
-            return f"{parsed.scheme}://{masked_domain}"
-        except Exception:
-            return 'https://***'

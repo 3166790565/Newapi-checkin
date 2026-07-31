@@ -7,6 +7,7 @@ NewAPI 签到测试脚本
 
 import sys
 from checkin import NewAPICheckin
+from notifier import format_quota
 
 
 def test_checkin(base_url: str, session_cookie: str, user_id: str = None, verbose: bool = False):
@@ -56,13 +57,7 @@ def test_checkin(base_url: str, session_cookie: str, user_id: str = None, verbos
             print(f'  签到日期: {result["checkin_date"]}')
         if result['quota_awarded']:
             quota = result['quota_awarded']
-            if quota >= 1000000:
-                quota_str = f'{quota / 1000000:.2f}M'
-            elif quota >= 1000:
-                quota_str = f'{quota / 1000:.2f}K'
-            else:
-                quota_str = str(quota)
-            print(f'  获得额度: +{quota_str} ({quota:,} tokens)')
+            print(f'  获得额度: +{format_quota(quota)} ({quota:,} tokens)')
     else:
         print(f'❌ {result["message"]}')
         return False
@@ -76,13 +71,7 @@ def test_checkin(base_url: str, session_cookie: str, user_id: str = None, verbos
             stats = history['stats']
             print(f'  本月签到: {stats.get("checkin_count", 0)} 天')
             total = stats.get('total_quota', 0)
-            if total >= 1000000:
-                total_str = f'{total / 1000000:.2f}M'
-            elif total >= 1000:
-                total_str = f'{total / 1000:.2f}K'
-            else:
-                total_str = str(total)
-            print(f'  累计额度: {total_str} ({total:,} tokens)')
+            print(f'  累计额度: {format_quota(total)} ({total:,} tokens)')
             print(f'  今日已签: {"是" if stats.get("checked_in_today") else "否"}')
     else:
         print('⚠️  获取失败（不影响签到）')

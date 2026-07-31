@@ -6,19 +6,37 @@ NewAPI 自动签到脚本
 """
 
 import os
+import re
 import sys
 import json
+import time
 import requests
 from datetime import datetime
 from typing import Optional
 
 try:
-    from cf_bypass import detect_cloudflare_block, CloudflareBypasser
+    from cf_bypass import detect_cloudflare_block, CloudflareBypasser, mask_url
     CF_BYPASS_AVAILABLE = True
 except ImportError:
     CF_BYPASS_AVAILABLE = False
     detect_cloudflare_block = None
     CloudflareBypasser = None
+
+    def mask_url(url: str) -> str:
+        """脱敏 URL，隐藏域名细节（cf_bypass 不可用时的回退实现）"""
+        try:
+            from urllib.parse import urlparse
+            parsed = urlparse(url)
+            domain_parts = parsed.netloc.split('.')
+            if len(domain_parts) >= 3:
+                masked_domain = f"{domain_parts[0]}.***." + '.'.join(domain_parts[-1:])
+            elif len(domain_parts) == 2:
+                masked_domain = '***.' + '.'.join(domain_parts[-1:])
+            else:
+                masked_domain = '***'
+            return f"{parsed.scheme}://{masked_domain}"
+        except Exception:
+            return 'https://***'
 
 try:
     from dingtalk_notifier import send_checkin_notification
@@ -26,10 +44,19 @@ except ImportError:
     send_checkin_notification = None
 
 try:
-    from notifier import send_email_notification, send_serverchan_notification
+    from notifier import send_email_notification, send_serverchan_notification, format_quota
 except ImportError:
     send_email_notification = None
     send_serverchan_notification = None
+
+    def format_quota(quota: int) -> str:
+        """格式化额度显示（notifier 不可用时的回退实现）"""
+        if quota >= 1000000:
+            return f'{quota / 1000000:.2f}M'
+        elif quota >= 1000:
+            return f'{quota / 1000:.2f}K'
+        else:
+            return str(quota)
 
 try:
     from lottery import run_for_account as lottery_run_for_account
@@ -41,25 +68,6 @@ except ImportError:
 
 class NewAPICheckin:
     """NewAPI 签到类"""
-
-    @staticmethod
-    def _mask_url(url: str) -> str:
-        """
-        脱敏 URL，隐藏域名细节
-        例如: https://api.example.com -> https://api.***.**
-        """
-        try:
-            from urllib.parse import urlparse
-            parsed = urlparse(url)
-            domain_parts = parsed.netloc.split('.')
-            if len(domain_parts) >= 2:
-                # 保留第一部分和最后一部分，中间用 *** 代替
-                masked_domain = f"{domain_parts[0]}.***." + '.'.join(domain_parts[-1:])
-            else:
-                masked_domain = '***'
-            return f"{parsed.scheme}://{masked_domain}"
-        except Exception:
-            return 'https://***'
 
     @staticmethod
     def _mask_user_id(user_id: str) -> str:
@@ -94,6 +102,41 @@ class NewAPICheckin:
         self.user_id = user_id
         if user_id:
             self.session.headers.update({'new-api-user': str(user_id)})
+
+    def _post_with_retry(self, url: str, max_retries: int = 2, **kwargs) -> requests.Response:
+        """
+        POST 请求，带网络异常和 HTTP 429/5xx 的指数退避重试
+
+        不重试 401（认证失败走自动续期逻辑，由调用方处理）。
+
+        Args:
+            url: 请求地址
+            max_retries: 最大重试次数（默认 2，退避间隔 1s/2s）
+            **kwargs: 透传给 requests.Session.post 的其他参数
+
+        Returns:
+            最后一次的响应对象
+        Raises:
+            requests.exceptions.RequestException: 网络层持续失败
+        """
+        kwargs.setdefault('timeout', 30)
+        for attempt in range(max_retries + 1):
+            try:
+                resp = self.session.post(url, **kwargs)
+            except requests.exceptions.RequestException as e:
+                if attempt < max_retries:
+                    wait = 2 ** attempt
+                    print(f'  [重试] 网络请求失败: {e}，{wait}s 后重试 ({attempt + 1}/{max_retries})...')
+                    time.sleep(wait)
+                    continue
+                raise
+            if resp.status_code < 500 and resp.status_code != 429:
+                return resp
+            if attempt < max_retries:
+                wait = 2 ** attempt
+                print(f'  [重试] HTTP {resp.status_code}，{wait}s 后重试 ({attempt + 1}/{max_retries})...')
+                time.sleep(wait)
+        return resp
 
     def _try_login(self) -> bool:
         """
@@ -144,7 +187,6 @@ class NewAPICheckin:
                 else:
                     # 可能 session cookie 在 set-cookie 头中
                     set_cookie = resp.headers.get('Set-Cookie', '')
-                    import re
                     match = re.search(r'(?:session|session_id)=([^;]+)', set_cookie)
                     if match:
                         new_session = match.group(1)
@@ -283,14 +325,14 @@ class NewAPICheckin:
         }
 
         try:
-            resp = self.session.post(f'{self.base_url}/api/user/checkin', timeout=30)
+            resp = self._post_with_retry(f'{self.base_url}/api/user/checkin')
 
             if resp.status_code == 401:
                 result['message'] = '认证失败: Session 可能已过期，请重新获取'
                 # 尝试自动登录
                 if self._try_login():
                     print(f'  [登录] 重试签到...')
-                    resp = self.session.post(f'{self.base_url}/api/user/checkin', timeout=30)
+                    resp = self._post_with_retry(f'{self.base_url}/api/user/checkin')
                     if resp.status_code == 200:
                         try:
                             data = resp.json()
@@ -518,7 +560,7 @@ def load_config_from_cloud(config_url: str, config_auth: str = None) -> Optional
                 credentials = b64mod.b64encode(config_auth.encode('utf-8')).decode('utf-8')
                 headers['Authorization'] = 'Basic ' + credentials
 
-        print(f'[云端] 正在从云端加载配置: {NewAPICheckin._mask_url(config_url)}')
+        print(f'[云端] 正在从云端加载配置: {mask_url(config_url)}')
 
         resp = requests.get(config_url, headers=headers, timeout=30)
 
@@ -619,7 +661,7 @@ def main():
     execution_time = datetime.now(beijing_tz).strftime("%Y-%m-%d %H:%M:%S")
     print('=' * 50)
     print('NewAPI 自动签到')
-    print(f'执行时间: {datetime.now().strftime("%Y-%m-%d %H:%M:%S")}')
+    print(f'执行时间: {execution_time}')
     print('=' * 50)
 
     config_url = os.environ.get('CONFIG_URL', '')
@@ -673,7 +715,7 @@ def main():
         name = account.get('name') or f'账号{i}'
 
         print(f'[{i}/{len(accounts)}] {name}')
-        print(f'  站点: {NewAPICheckin._mask_url(url)}')
+        print(f'  站点: {mask_url(url)}')
         if user_id:
             print(f'  用户ID: {NewAPICheckin._mask_user_id(user_id)}')
 
@@ -710,14 +752,7 @@ def main():
             # 显示获得的额度（格式化显示）
             if result['quota_awarded']:
                 quota = result['quota_awarded']
-                # 格式化额度显示
-                if quota >= 1000000:
-                    quota_str = f'{quota / 1000000:.2f}M'
-                elif quota >= 1000:
-                    quota_str = f'{quota / 1000:.2f}K'
-                else:
-                    quota_str = str(quota)
-                print(f'  奖励: +{quota_str} 额度 ({quota:,} tokens)')
+                print(f'  奖励: +{format_quota(quota)} 额度 ({quota:,} tokens)')
 
             # 获取本月签到统计
             history = client.get_checkin_history()
@@ -725,13 +760,7 @@ def main():
                 stats = history['stats']
                 checkin_count = stats.get('checkin_count', 0)
                 total_quota = stats.get('total_quota', 0)
-                if total_quota >= 1000000:
-                    total_str = f'{total_quota / 1000000:.2f}M'
-                elif total_quota >= 1000:
-                    total_str = f'{total_quota / 1000:.2f}K'
-                else:
-                    total_str = str(total_quota)
-                print(f'  统计: 本月已签 {checkin_count} 天，累计 {total_str} 额度')
+                print(f'  统计: 本月已签 {checkin_count} 天，累计 {format_quota(total_quota)} 额度')
 
             # 抽奖（仅 lanxiu.cc 本地运行，GitHub Actions 跳过 — 绑定映射无法持久化）
             lottery_items = []
@@ -747,7 +776,7 @@ def main():
                             break
                         if prize:
                             q = prize.get('quota_awarded', 0)
-                            qs = f'{q/1000000:.2f}M' if q >= 1000000 else f'{q/1000:.2f}K' if q >= 1000 else str(q)
+                            qs = format_quota(q)
                             line = f'🎉 {prize["prize_name"]} +{qs}'
                             lottery_items.append(line)
                             print(f'  抽奖: {line}')
@@ -764,7 +793,7 @@ def main():
                         break
                     if prize:
                         q = prize.get('quota_awarded', 0)
-                        qs = f'{q/1000000:.2f}M' if q >= 1000000 else f'{q/1000:.2f}K' if q >= 1000 else str(q)
+                        qs = format_quota(q)
                         line = f'🎉 第{rnd+1}次 {prize["prize_name"]} +{qs}'
                         lottery_items.append(line)
                         print(f'  翻卡: {line}')

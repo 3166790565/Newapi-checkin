@@ -18,6 +18,7 @@
 - ✅ **重复签到检测**（已签到自动标记成功，避免误报）
 - ✅ **工作流保活**（防止 GitHub Actions 自动禁用）
 - ✅ **请求限流处理**（登录接口返回 429 时友好跳过，不会直接报错）
+- ✅ **签到接口自动重试**（网络异常 / HTTP 429 / 5xx 自动退避重试，避免瞬时故障误报）
 - ✅ **哈基米中转站专属抽奖**（lanxiu.cc 站点签到后自动抽取额度，每日 2 次，仅本地运行）
 - ✅ **维云中转站专属翻卡**（vsllm.com 站点签到后自动翻卡，每日 3 次，本地和 GHA 均可运行）
 
@@ -333,11 +334,12 @@ schedule:
 
 | Secret 名称 | 说明 | 是否必须 |
 |-------------|------|----------|
-| `SMTP_HOST` | SMTP 服务器地址（如 `smtp.qq.com`） | 是 |
-| `SMTP_PORT` | SMTP 端口（如 `465`） | 否（默认 465） |
-| `SMTP_USER` | 发件邮箱地址 | 是 |
-| `SMTP_PASS` | 邮箱授权码或密码 | 是 |
-| `SMTP_TO` | 收件邮箱地址 | 是 |
+| `EMAIL_SMTP_HOST` | SMTP 服务器地址（如 `smtp.qq.com`） | 是 |
+| `EMAIL_SMTP_PORT` | SMTP 端口（如 `465`） | 否（默认 465） |
+| `EMAIL_USER` | 发件邮箱地址 | 是 |
+| `EMAIL_PASS` | 邮箱授权码或密码 | 是 |
+| `EMAIL_TO` | 收件邮箱地址 | 是 |
+| `EMAIL_FROM` | 发件人地址（可选，默认与 `EMAIL_USER` 相同） | 否 |
 
 > **提示：** 使用 QQ 邮箱等需开启 SMTP 服务并获取授权码，非登录密码。
 
@@ -622,7 +624,7 @@ NewAPI 自动签到
 **原因：** Session Cookie 过期或无效。
 
 **解决：**
-1. 自动续期：在 JSON 配置中配置 `username` 和 `password` 字段，脚本会自动重新登录（见"Session 自动续期"章节）
+1. 自动续期：在 JSON 配置中配置 `login_username` 和 `login_password` 字段，脚本会自动重新登录（见"Session 自动续期"章节）
 2. 手动更新：重新登录网站，获取新的 Session Cookie，更新 GitHub Secrets
 
 ### Q2: GitHub Actions 没有自动执行
@@ -1234,6 +1236,7 @@ Session Cookie 相当于**临时密码**，拥有它的人可以：
 | `.github/workflows/checkin.yml` | GitHub Actions 工作流 |
 | `requirements.txt` | Python 依赖 |
 | `README.md` | 项目文档 |
+| `CHANGELOG.md` | 更新日志 |
 
 ---
 
